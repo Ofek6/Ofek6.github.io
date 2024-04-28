@@ -64,6 +64,23 @@
             right: 10px;
             cursor: pointer;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .scrollable-content {
+            max-height: calc(100vh - 250px); /* Adjust height as needed */
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -74,15 +91,19 @@
         <a href="#">Home</a>
         <a href="#" id="addInfo">Add Practice</a>
         <a href="#" id="getData">Get Practices</a>
+        <button id="generateTable">Generate Table</button> <!-- Add this line -->
     </nav>
-    <section>
-        <img src="springhorizons_logo.jpg" width="150" height="100">
-        <h2>Welcome to Our Family Website</h2>
-        <p>Ofek - the king</p>
-        <p>Aviv - the big brother</p>
-        <p>Dana - Momy</p>
-        <p>Ilan - Dady</p>
-        <ul id="dataList"></ul> <!-- Add this line -->
+	<div class="scrollable-content">
+		<section>
+			<img src="springhorizons_logo.jpg" width="150" height="100">
+			<h2>Welcome to Our Family Website</h2>
+			<p>Ofek - the king</p>
+			<p>Aviv - the big brother</p>
+			<p>Dana - Momy</p>
+			<p>Ilan - Dady</p>
+		<ul id="dataList"></ul> <!-- Add this line -->
+		<table id="dataTable"></table> <!-- Add this line -->
+      </div>
     </section>
     <footer>
         <p>&copy; 2024 Ofek Ellenbogen.</p>
@@ -94,16 +115,16 @@
     
         // Your web app's Firebase configuration
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-		  const firebaseConfig = {
-			apiKey: "AIzaSyBzhRJW6AIMkLotqFdNbg_8DXpiPxom50Y",
-			authDomain: "springhorizons-17891.firebaseapp.com",
-			databaseURL: "https://springhorizons-17891-default-rtdb.firebaseio.com",
-			projectId: "springhorizons-17891",
-			storageBucket: "springhorizons-17891.appspot.com",
-			messagingSenderId: "760675251962",
-			appId: "1:760675251962:web:8c1a46cb9073f55adb3b43",
-			measurementId: "G-7L3ZWLVXFL"
-		  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzhRJW6AIMkLotqFdNbg_8DXpiPxom50Y",
+            authDomain: "springhorizons-17891.firebaseapp.com",
+            databaseURL: "https://springhorizons-17891-default-rtdb.firebaseio.com",
+            projectId: "springhorizons-17891",
+            storageBucket: "springhorizons-17891.appspot.com",
+            messagingSenderId: "760675251962",
+            appId: "1:760675251962:web:8c1a46cb9073f55adb3b43",
+            measurementId: "G-7L3ZWLVXFL"
+        };
     
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -213,6 +234,71 @@
                 } else {
                     alert("Please select a name.");
                 }
+            });
+        }
+
+        // Function to toggle table visibility
+        let tableVisible = false; // Keep track of table visibility
+
+        function toggleTableVisibility() {
+            const dataTable = document.getElementById("dataTable");
+            if (tableVisible) {
+                dataTable.style.display = "none"; // Hide the table
+                tableVisible = false;
+            } else {
+                dataTable.style.display = "table"; // Show the table
+                tableVisible = true;
+            }
+        }
+
+        // Function to generate or remove table
+        document.getElementById("generateTable").addEventListener("click", function() {
+            if (tableVisible) {
+                document.getElementById("dataTable").innerHTML = ""; // Clear table content
+                toggleTableVisibility();
+                this.textContent = "Generate Table"; // Change button text
+            } else {
+                generateTable();
+                toggleTableVisibility();
+                this.textContent = "Hide Table"; // Change button text
+            }
+        });
+
+        // Function to generate table
+        function generateTable() {
+            const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM format)
+            const dataTable = document.getElementById("dataTable");
+            dataTable.innerHTML = ""; // Clear previous data
+            const names = ["Ofek", "Aviv", "Dana", "Ilan"]; // List of names
+
+            const tableHeader = dataTable.createTHead();
+            const headerRow = tableHeader.insertRow();
+            const headers = ["Name", "Number of Practices", "Last Date of Practice"];
+            headers.forEach(headerText => {
+                const th = document.createElement("th");
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+
+            names.forEach(name => {
+                const workoutsRef = ref(database, name.toLowerCase() + '/workouts');
+                onValue(workoutsRef, (snapshot) => {
+                    let count = 0;
+                    let lastDate = "";
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        if (data.date.startsWith(currentMonth)) {
+                            count++;
+                            lastDate = data.date; // Update last date
+                        }
+                    });
+                    if (count > 0) {
+                        const newRow = dataTable.insertRow();
+                        newRow.insertCell().textContent = name;
+                        newRow.insertCell().textContent = count;
+                        newRow.insertCell().textContent = lastDate;
+                    }
+                });
             });
         }
     </script>
