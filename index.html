@@ -43,6 +43,24 @@
             bottom: 0;
             width: 100%;
         }
+        /* Styling for the popup */
+        .popup {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+        .popup-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -51,19 +69,109 @@
     </header>
     <nav>
         <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
+        <a href="#" id="addInfo">Add Practice</a>
+        <a href="#" id="getData">Get Data</a>
     </nav>
     <section>
-	<img src="springhorizons_logo.jpg" width="150" height="100">
+        <img src="springhorizons_logo.jpg" width="150" height="100">
         <h2>Welcome to Our Family Website</h2>
         <p>Ofek - the king</p>
-		<p>Aviv - the big brother</p>
-		<p>Dana - Momy</p>
-		<p>Ilan - Dady</p>
+        <p>Aviv - the big brother</p>
+        <p>Dana - Momy</p>
+        <p>Ilan - Dady</p>
+        <ul id="dataList"></ul> <!-- Add this line -->
     </section>
     <footer>
         <p>&copy; 2024 © Ofek Ellenbogen.</p>
     </footer>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		  const firebaseConfig = {
+			apiKey: "AIzaSyBzhRJW6AIMkLotqFdNbg_8DXpiPxom50Y",
+			authDomain: "springhorizons-17891.firebaseapp.com",
+			databaseURL: "https://springhorizons-17891-default-rtdb.firebaseio.com",
+			projectId: "springhorizons-17891",
+			storageBucket: "springhorizons-17891.appspot.com",
+			messagingSenderId: "760675251962",
+			appId: "1:760675251962:web:8c1a46cb9073f55adb3b43",
+			measurementId: "G-7L3ZWLVXFL"
+		  };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        // Function to add information
+        document.getElementById("addInfo").addEventListener("click", function(event) {
+            event.preventDefault();
+            const selectedName = prompt("Choose a name (Ofek or Aviv):");
+            if (selectedName && (selectedName.toLowerCase() === "ofek" || selectedName.toLowerCase() === "aviv")) {
+                const workoutType = prompt("Enter workout type:");
+                if (workoutType) {
+                    const currentDate = new Date().toISOString().slice(0, 10);
+                    const newInfoRef = push(ref(database, selectedName.toLowerCase() + '/workouts'));
+                    set(newInfoRef, {
+                        date: currentDate,
+                        workout: workoutType
+                    });
+                    // Display added information in a more readable format
+                    alert(`Successfully added:\nName: ${selectedName}\nDate: ${currentDate}\nWorkout: ${workoutType}`);
+                } else {
+                    alert("Please enter a workout type.");
+                }
+            } else {
+                alert("Please choose a valid name (Ofek or Aviv).");
+            }
+        });
+        
+        // Function to get data
+        document.getElementById("getData").addEventListener("click", getData);
+        
+        function getData() {
+            const selectedName = prompt("Choose a name to get data (Ofek or Aviv):");
+            if (selectedName && (selectedName.toLowerCase() === "ofek" || selectedName.toLowerCase() === "aviv")) {
+                const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM format)
+                const workoutsRef = ref(database, selectedName.toLowerCase() + '/workouts');
+                onValue(workoutsRef, (snapshot) => {
+                    const dataList = document.getElementById("dataList");
+                    dataList.innerHTML = ""; // Clear previous data
+                    let count = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        // Check if workout is for the current month and user
+                        if (data.date.startsWith(currentMonth)) {
+                            const listItem = document.createElement("li");
+                            const infoText = `Date: ${data.date}, Workout: ${data.workout}`;
+                            listItem.textContent = infoText;
+                            // Popup window for better display
+                            listItem.addEventListener("click", function() {
+                                const popup = document.createElement("div");
+                                popup.classList.add("popup");
+                                popup.innerHTML = `
+                                    <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
+                                    <p>${infoText}</p>
+                                `;
+                                document.body.appendChild(popup);
+                            });
+                            dataList.appendChild(listItem);
+                            count++;
+                        }
+                    });
+                    if (count === 0) {
+                        alert("No workouts found for the current month.");
+                    } else {
+                        alert(`Total workouts for ${selectedName} in the current month: ${count}`);
+                    }
+                });
+            } else {
+                alert("Please choose a valid name (Ofek or Aviv).");
+            }
+        }
+    </script>
 </body>
 </html>
