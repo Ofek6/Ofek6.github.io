@@ -54,6 +54,9 @@
             border: 1px solid #ccc;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             z-index: 9999;
+            width: 300px; /* Adjust the width */
+            max-height: 200px; /* Adjust the maximum height */
+            overflow-y: auto; /* Add vertical scrollbar if content exceeds max height */
         }
         .popup-close {
             position: absolute;
@@ -115,14 +118,14 @@
             popup.innerHTML = `
                 <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
                 <h3>Choose a Name</h3>
-                <select id="selectName">
+                <select id="selectName" style="width: 100%;">
                     <option value="">Select Name</option>
                     <option value="Ofek">Ofek</option>
                     <option value="Aviv">Aviv</option>
                     <option value="Dana">Dana</option>
                     <option value="Ilan">Ilan</option>
                 </select>
-                <button id="submitName">Submit</button>
+                <button id="submitName" style="margin-top: 10px;">Submit</button>
             `;
             document.body.appendChild(popup);
             // Add event listener for submitting name
@@ -159,14 +162,14 @@
             popup.innerHTML = `
                 <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
                 <h3>Choose a Name</h3>
-                <select id="selectName">
+                <select id="selectName" style="width: 100%;">
                     <option value="">Select Name</option>
                     <option value="Ofek">Ofek</option>
                     <option value="Aviv">Aviv</option>
                     <option value="Dana">Dana</option>
                     <option value="Ilan">Ilan</option>
                 </select>
-                <button id="submitName">Submit</button>
+                <button id="submitName" style="margin-top: 10px;">Submit</button>
             `;
             document.body.appendChild(popup);
             // Add event listener for submitting name
