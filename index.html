@@ -109,68 +109,108 @@
         // Function to add information
         document.getElementById("addInfo").addEventListener("click", function(event) {
             event.preventDefault();
-            const selectedName = prompt("Choose a name (Ofek or Aviv):");
-            if (selectedName && (selectedName.toLowerCase() === "ofek" || selectedName.toLowerCase() === "aviv")) {
-                const workoutType = prompt("Enter workout type:");
-                if (workoutType) {
-                    const currentDate = new Date().toISOString().slice(0, 10);
-                    const newInfoRef = push(ref(database, selectedName.toLowerCase() + '/workouts'));
-                    set(newInfoRef, {
-                        date: currentDate,
-                        workout: workoutType
-                    });
-                    // Display added information in a more readable format
-                    alert(`Successfully added:\nName: ${selectedName}\nDate: ${currentDate}\nWorkout: ${workoutType}`);
+            // Create popup for choosing name
+            const popup = document.createElement("div");
+            popup.classList.add("popup");
+            popup.innerHTML = `
+                <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
+                <h3>Choose a Name</h3>
+                <select id="selectName">
+                    <option value="">Select Name</option>
+                    <option value="Ofek">Ofek</option>
+                    <option value="Aviv">Aviv</option>
+                    <option value="Dana">Dana</option>
+                    <option value="Ilan">Ilan</option>
+                </select>
+                <button id="submitName">Submit</button>
+            `;
+            document.body.appendChild(popup);
+            // Add event listener for submitting name
+            document.getElementById("submitName").addEventListener("click", function() {
+                const selectedName = document.getElementById("selectName").value;
+                if (selectedName) {
+                    popup.remove(); // Remove popup
+                    const workoutType = prompt("Enter workout type:");
+                    if (workoutType) {
+                        const currentDate = new Date().toISOString().slice(0, 10);
+                        const newInfoRef = push(ref(database, selectedName.toLowerCase() + '/workouts'));
+                        set(newInfoRef, {
+                            date: currentDate,
+                            workout: workoutType
+                        });
+                        // Display added information in a more readable format
+                        alert(`Successfully added:\nName: ${selectedName}\nDate: ${currentDate}\nWorkout: ${workoutType}`);
+                    } else {
+                        alert("Please enter a workout type.");
+                    }
                 } else {
-                    alert("Please enter a workout type.");
+                    alert("Please select a name.");
                 }
-            } else {
-                alert("Please choose a valid name (Ofek or Aviv).");
-            }
+            });
         });
         
         // Function to get data
         document.getElementById("getData").addEventListener("click", getData);
         
         function getData() {
-            const selectedName = prompt("Choose a name to get data (Ofek or Aviv):");
-            if (selectedName && (selectedName.toLowerCase() === "ofek" || selectedName.toLowerCase() === "aviv")) {
-                const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM format)
-                const workoutsRef = ref(database, selectedName.toLowerCase() + '/workouts');
-                onValue(workoutsRef, (snapshot) => {
-                    const dataList = document.getElementById("dataList");
-                    dataList.innerHTML = ""; // Clear previous data
-                    let count = 0;
-                    snapshot.forEach((childSnapshot) => {
-                        const data = childSnapshot.val();
-                        // Check if workout is for the current month and user
-                        if (data.date.startsWith(currentMonth)) {
-                            const listItem = document.createElement("li");
-                            const infoText = `Date: ${data.date}, Workout: ${data.workout}`;
-                            listItem.textContent = infoText;
-                            // Popup window for better display
-                            listItem.addEventListener("click", function() {
-                                const popup = document.createElement("div");
-                                popup.classList.add("popup");
-                                popup.innerHTML = `
-                                    <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
-                                    <p>${infoText}</p>
-                                `;
-                                document.body.appendChild(popup);
-                            });
-                            dataList.appendChild(listItem);
-                            count++;
+            // Create popup for choosing name
+            const popup = document.createElement("div");
+            popup.classList.add("popup");
+            popup.innerHTML = `
+                <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
+                <h3>Choose a Name</h3>
+                <select id="selectName">
+                    <option value="">Select Name</option>
+                    <option value="Ofek">Ofek</option>
+                    <option value="Aviv">Aviv</option>
+                    <option value="Dana">Dana</option>
+                    <option value="Ilan">Ilan</option>
+                </select>
+                <button id="submitName">Submit</button>
+            `;
+            document.body.appendChild(popup);
+            // Add event listener for submitting name
+            document.getElementById("submitName").addEventListener("click", function() {
+                const selectedName = document.getElementById("selectName").value;
+                if (selectedName) {
+                    popup.remove(); // Remove popup
+                    const currentMonth = new Date().toISOString().slice(0, 7); // Get current month (YYYY-MM format)
+                    const workoutsRef = ref(database, selectedName.toLowerCase() + '/workouts');
+                    onValue(workoutsRef, (snapshot) => {
+                        const dataList = document.getElementById("dataList");
+                        dataList.innerHTML = ""; // Clear previous data
+                        let count = 0;
+                        snapshot.forEach((childSnapshot) => {
+                            const data = childSnapshot.val();
+                            // Check if workout is for the current month and user
+                            if (data.date.startsWith(currentMonth)) {
+                                const listItem = document.createElement("li");
+                                const infoText = `Date: ${data.date}, Workout: ${data.workout}`;
+                                listItem.textContent = infoText;
+                                // Popup window for better display
+                                listItem.addEventListener("click", function() {
+                                    const popup = document.createElement("div");
+                                    popup.classList.add("popup");
+                                    popup.innerHTML = `
+                                        <span class="popup-close" onclick="this.parentNode.remove();">&times;</span>
+                                        <p>${infoText}</p>
+                                    `;
+                                    document.body.appendChild(popup);
+                                });
+                                dataList.appendChild(listItem);
+                                count++;
+                            }
+                        });
+                        if (count === 0) {
+                            alert("No workouts found for the current month.");
+                        } else {
+                            alert(`Total workouts for ${selectedName} in the current month: ${count}`);
                         }
                     });
-                    if (count === 0) {
-                        alert("No workouts found for the current month.");
-                    } else {
-                        alert(`Total workouts for ${selectedName} in the current month: ${count}`);
-                    }
-                });
-            } else {
-                alert("Please choose a valid name (Ofek or Aviv).");
-            }
+                } else {
+                    alert("Please select a name.");
+                }
+            });
         }
     </script>
 </body>
